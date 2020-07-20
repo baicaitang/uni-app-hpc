@@ -1,0 +1,159 @@
+	//页面头部撑开样式
+	.content {
+		padding-top: var(--status-bar-height);
+	}	
+
+//头部公用样式
+	.top-bar {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 88rpx;
+		background: $uni-bg-color;
+		// box-shadow: 0px 1px 0px 0px rgba(0, 0, 0, 0.1);
+		border-bottom:1rpx solid $uni-border-color;
+		padding-top: var(--status-bar-height);
+		z-index: 2;
+	
+		.top-bar-left {
+			float: left;
+			height:100%;
+			width: 88rpx;
+			box-sizing: border-box;
+			padding:0 $uni-spacing-col-base;
+			
+			.back {
+				margin: 24rpx 0;
+				color: $uni-text-color;
+				width: 30rpx;
+				height: 44rpx;
+			}
+			
+			image {
+				margin-top: 10rpx;
+				width: 68rpx;
+				height: 68rpx;
+				border-radius: $uni-border-radius-sm;
+			}
+
+			.close {
+				margin: 20rpx 0;
+				display: inline-block;
+				width: 44rpx;
+				height: 44rpx;
+			}	
+			
+		}
+	
+		.top-bar-center {
+			float: left;
+			text-align: center;
+			left: 0;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			margin: 0 auto;
+			width: 40%;
+			height: 88rpx;
+			
+			.title {
+				line-height: 88rpx;
+			}
+			
+			.logo {
+				padding: 24rpx;
+				width: 88rpx;
+				height: 40rpx;
+			}
+			
+		}
+		
+		.pice{
+			padding: 44rpx;
+			width: 88rpx;
+			box-sizing: border-box;
+		}
+	
+		.top-bar-right {
+			float: right;
+			height: 88rpx;
+			padding-right: $uni-spacing-col-base;
+			
+			.text {
+				font-size: $uni-font-size-lg;
+				font-weight: 500;
+				color: $uni-text-color;
+				line-height: 88rpx;
+			}
+			
+			.close {
+				display: inline-block;
+				width: 48rpx;
+				height: 48rpx;
+			}
+			
+			.search {
+				width: 88rpx;
+				height: 88rpx;
+				display: inline-block;
+	
+				.search-img {}
+			}
+	
+			.add {
+				width: 88rpx;
+				height: 88rpx;
+				display: inline-block;
+	
+				.add-img {}
+			}
+			
+			.more-img{
+				height: 88rpx;
+				image{
+					padding: 38rpx 0 38rpx 0;
+					width: 52rpx;
+					height: 12rpx;
+				}
+			}
+			
+			image {
+				padding: 20rpx 40rpx;
+				width: 48rpx;
+				height: 48rpx;
+			}
+		}
+	}
+	
+//底部公用样式
+	.bottom-bar{
+		position: fixed;
+		bottom: 0;
+		width:100%;
+		height: 90rpx;
+		// box-sizing: border-box;
+		padding-top: 10rpx;	
+		padding-bottom:env(safe-area-inset-bottom);
+		
+		.btn1{
+			text-align: center;
+			line-height:80rpx;
+			font-size: $uni-font-size-base;
+			color:$uni-text-color;
+			width: 684rpx;
+			height: 80rpx;
+			border-radius: $uni-border-radius-sm;
+		}
+		
+	}
+	.btn2{
+		margin-top: 70rpx;
+		text-align: center;
+		font-size: $uni-font-size-lg;
+		color:$uni-color-warning;
+		line-height: 88rpx;
+	}
+	
+	
+	
