@@ -5,7 +5,7 @@
 				<image src="../../static/images/sign/back.png" mode="" class="back"></image>
 			</view>
 			<view class="top-bar-right">
-				<image src="../../static/images/sign/关闭@3x.png" mode="" class="close"></image>
+				<image src="" mode="" class="close"></image>
 			</view>
 		</view>
 		<view class="logo">
@@ -20,9 +20,9 @@
 					<view class="input">
 						<input type="text" @blur="handleUser" @focus="handleUserFocus" @input="handleUserEnter" placeholder="请输入昵称" class="user"
 						 placeholder-style="color:#aaa;font-weight:400;" />
-						<view class="employ" v-if="u_employ">
+						<!-- <view class="employ" v-if="u_employ">
 							用户名已有
-						</view>
+						</view> -->
 						<view class="empty" v-if="u_empty">
 							用户名不能为空
 						</view>
@@ -31,9 +31,9 @@
 					<view class="input">
 						<input type="text" @blur="handleEmail" @focus="handleEmailFocus" @input="handleEmailEnter" placeholder="请输入邮箱"
 						 class="email" placeholder-style="color:#aaa;font-weight:400;" />
-						<view class="employ" v-if="e_employ">
+						<!-- <view class="employ" v-if="e_employ">
 							邮箱已注册
-						</view>
+						</view> -->
 						<view class="empty" v-if="e_empty">
 							邮箱不能为空
 						</view>
@@ -45,10 +45,10 @@
 					<view class="input">
 						<input :type="type" @blur="handlePwd" @focus="handlePwdFucus" @input="handlePwdEnter" placeholder="这里输入密码" class="pwd"
 						 placeholder-style="color:#aaa;font-weight:400;" />
-						<view class="employ" v-if="pwd_employ">
+						<!-- <view class="employ" v-if="pwd_simple">
 							密码过于简单
-						</view>
-						<view class="empty" v-if="pwd_empty">
+						</view> -->
+						<view class="empty pwd_empty" v-if="pwd_empty">
 							请填写密码
 						</view>
 						<image :src="looksrc" mode="" class="look" @tap="looks"></image>
@@ -67,17 +67,17 @@
 		data() {
 			return {
 				type: 'password',
-				e_empty: false, //是否为空
-				u_empty: false,
-				pwd_empty: false,
+				e_empty: false, //表单是否为空
+				u_empty: false,//表单是否为空
+				pwd_empty: false,//表单是否为空
 				isuser: false, //用户名是否正确
 				isemail: false, //邮箱是否正确
 				invalid: false, //邮箱是否有效
-				u_employ: false, //用户名是否占用
-				e_employ: false, //邮箱是否已经注册
-				pwd_employ: false, //密码是否过于简单
+				// u_employ: false, //用户名是否占用
+				// e_employ: false, //邮箱是否已经注册
+				// pwd_simple: false, //密码是否过于简单
 				look: false, //是否显示密码
-				looksrc: "../../static/images/sign/biyan.png",
+				looksrc: '',
 				email: '', // 邮箱
 				user: '', //用户名
 				pwd: '', //密码
@@ -91,6 +91,7 @@
 					this.type = "password"
 					this.look = !this.look
 					this.looksrc = "../../static/images/sign/biyan.png"
+					
 				} else {
 					this.type = "text"
 					this.look = !this.look
@@ -100,85 +101,169 @@
 			handleUser(e) { //用户名失去焦点
 				this.user = e.detail.value
 				if (this.user.length > 0) {
-					this.u_empty = false
+					this.u_empty = false //表单为空
 					this.isuser = true
+					
+					// 用户是否存在验证
+					uni.request({
+						url:this.serverUrl + '/signup/judge',
+						data:{
+							data:this.user,
+							type:'name',
+						},
+						method:'POST',
+						success:(data) => {
+							// console.log(data)
+							let status = data.data.status
+							
+							// 访问后端成功
+							if(status == 200){
+								let result = data.data.result
+								
+								if(result>0){
+									// 用户名已存在
+									this.isuser = false
+									// this.u_employ = true
+									uni.showToast({
+									    title: '用户名已存在！',
+											icon:'none',
+									    duration: 2000
+									});
+									this.isOk()
+								}else if(result == 0){
+									this.isuser = true
+									this.isOk()
+								}
+								
+								
+							}else if(status == 500){
+								uni.showToast({
+								    title: '服务器出错了！',
+										icon:'none',
+								    duration: 2000
+								});
+							}
+						}
+					})
+					
 				} else {
 					this.u_empty = true
 					this.isuser = false
 				}
+				this.isOk()
 			},
 			handleEmail(e) { //邮箱失去焦点
 				this.email = e.detail.value
 				this.handleVerifyMailbox()
+				this.isOk()
 			},
 			handlePwd(e) { //密码失去焦点
+				
 				this.pwd = e.detail.value
+				
 				if (this.pwd.length > 0) {
-					if (this.pwd.length < 5) {
+					
+					if (this.pwd.length < 6) {
 						this.pwd_empty = false
-						this.pwd_employ = true
-						this.looksrc = ''
+						// this.pwd_simple = true
+						uni.showToast({
+						    title: '密码过于简单！！',
+								icon:'none',
+						    duration: 2000
+						});
+						
 					} else {
 						this.pwd_empty = false
-						this.pwd_employ = false
+						// this.pwd_simple = false
 						this.looksrc = "../../static/images/sign/biyan.png"
+						
 					}
-				} else {
+				} else if(this.pwd.length == 0){
+
 					this.pwd_empty = true
 					this.looksrc = ''
 				}
+				this.isOk()
 			},
 			handleEmailFocus(e) { //邮箱聚焦
 				this.e_empty = false
+				this.isOk()
 			},
 			handleUserFocus(e) { //用户名聚焦
 				this.u_empty = false
+				this.isOk()
 			},
 			handlePwdFucus(e) { //密码聚焦
 				this.pwd_empty = false
-				this.pwd_employ = false
+				this.pwd_simple = false
 				this.looksrc = ''
+				this.isOk()
 			},
 			handlePwdEnter(e) { //密码输入时
-				this.looksrc = "../../static/images/sign/biyan.png"
+				if(this.look){
+					this.looksrc = "../../static/images/sign/look.png"
+				}else{
+					this.looksrc = "../../static/images/sign/biyan.png"
+				}
+				this.isOk()
 			},
 			handleEmailEnter(e) { //邮箱输入时
 				this.isemail = false
 				this.invalid = false
+				this.isOk()
 			},
 			handleUserEnter(e) { //用户名输入时
 				this.isuser = false
+				this.isOk()
 			},
 			backOne() { //返回上一页
 				uni.navigateBack({
 					delta: 1
 				});
 			},
-			register() { //点击注册
-				if (this.user && this.email && this.pwd) {
-					if (this.handleVerifyMailbox()) { //验证邮箱、验证用户名、邮箱是否被占用
-						this.isok = false
-						this.isok2 = true
-					} else {
-						this.isok = true
-						this.isok2 = false
-					}
-					console.log('register!')
-				} else { //其中一个为空
+			isOk(){ //判断是否可以注册了	
+				
+				if(this.isuser && this.isemail && this.pwd.length > 5){
+					this.isok = false
+					this.isok2 = true
+				}else{
 					this.isok = true
 					this.isok2 = false
-					if (!this.user) {
-						this.u_empty = true
-						this.isuser = false
-					}
-					if (!this.email) {
-						this.e_empty = true
-						this.isemail = false
-					}
-					if (!this.pwd) {
-						this.pwd_empty = true
-						this.looksrc = ''
-					}
+				}
+				// console.log('判断是否可以注册！')
+				return this.isok2
+			},
+			register() { //点击注册
+				if(this.isOk()){
+						
+					uni.request({
+						url:this.serverUrl + '/signup/add',
+						data:{
+							name:this.user,
+							mail:this.email,
+							pwd:this.pwd,
+						},
+						method:'POST',
+						success:(data) => {
+							// console.log(data)
+							let status = data.data.status
+							
+							// 访问后端成功
+							if(status == 200){
+								// 注册成功跳转到登录页面
+								uni.navigateTo({
+									url:'../login/login?user='+this.user,
+								});
+								
+							}else if(status == 500){
+								uni.showToast({
+								    title: '服务器出错了！',
+										icon:'none',
+								    duration: 2000
+								});
+							}
+						}
+					})
 				}
 			},
 			handleVerifyMailbox() { //验证邮箱
@@ -187,20 +272,62 @@
 					this.e_empty = false
 					if (reg.test(this.email)) { //验证邮箱是否合格
 						// console.log('ok')
-						this.invalid = false
-						this.isemail = true
-						return true
+						// 邮箱合格
+						// 后端验证邮箱是否存在
+						uni.request({
+							url:this.serverUrl + '/signup/judge',
+							data:{
+								data:this.email,
+								type:'email',
+							},
+							method:'POST',
+							success:(data) => {
+								
+								let status = data.data.status
+								
+								// 访问后端成功
+								if(status == 200){
+									let result = data.data.result
+									
+									if(result>0){
+										// 邮箱已存在
+										this.isemail = false
+			
+										uni.showToast({
+										    title: '邮箱已存在！',
+												icon:'none',
+										    duration: 2000
+										});
+									}else if(result == 0){
+										// 邮箱可用
+										
+										this.isemail = true
+										this.isOk()
+									}
+								
+									
+								}else if(status == 500){
+									uni.showToast({
+									    title: '服务器出错了！',
+											icon:'none',
+									    duration: 2000
+									});
+								}
+							}
+						})
+						
 					} else {
+						// 邮箱无效
 						// console.log('error')
 						this.invalid = true
 						this.isemail = false
-						return false
+						
 					}
 				} else {
 					// console.log('email is empty!')
 					this.e_empty = true
 					this.invalid = false
-					return false
+					this.isOk()
 				}
 			},
 
@@ -213,8 +340,8 @@
 	.content {
 
 		.top-bar {
-			box-shadow: 0px 1px 0px 0px rgba(0, 0, 0, 0);
-
+			box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0);
+			border-bottom: none;
 			.top-bar-right {
 				height: 100%;
 				width: 88rpx;
@@ -273,6 +400,10 @@
 							font-weight: 500;
 							color: rgba(255, 93, 91, 1);
 							line-height: 88rpx;
+						}
+						
+						.pwd_empty{
+							right:48rpx;
 						}
 
 						.ok {

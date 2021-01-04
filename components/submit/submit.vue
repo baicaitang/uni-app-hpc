@@ -31,6 +31,8 @@
 							发送
 						</view> -->
 					</view>
+					
+					
 					<emoji @emotion="emotion" :hegiht="300"></emoji>
 				</view>
 				
@@ -107,12 +109,9 @@
 				flag:false,
 			};
 		},
-		props: [],
-		onLoad() {},
 		components: {
 			emoji
 		},
-		computed: {},
 		methods: {
 			getSubmitHeight() { //获取submit高度		
 				const query = uni.createSelectorQuery().in(this);
@@ -135,6 +134,8 @@
 				// console.log('height:'+ height)
 				//传入到父组件
 				this.$emit('subH', height)
+				this.$emit('isemoji', this.isemoji)
+				this.$emit('ismedia', this.ismedia)
 			},
 			isVoice() { //是否点击录音
 				
@@ -193,6 +194,7 @@
 				if (this.msg.length > 0) {
 					this.handleSendMsg(this.msg, 0)
 				}
+				
 
 			},
 			handleSendMsg(msg, type) { //处理发送的信息
@@ -308,7 +310,11 @@
 								latitude:res.latitude,
 								longitude:res.longitude
 							}
-							this.handleSendMsg(data,3)
+							
+							// json转json字符串
+							let strData = JSON.stringify(data)
+							
+							this.handleSendMsg(strData,3)
 				        // console.log('位置名称：' + res.name);
 				        // console.log('详细地址：' + res.address);
 				        // console.log('纬度：' + res.latitude);

@@ -158,7 +158,7 @@ export default {
 				m = "0" + m
 			}
 
-			return Y + "年" + M + "月" + D + '日' + h + ":" + m
+			return Y + "年" + M + "月" + D + '日'+ h + ":" + m
 		}
 
 	},
@@ -167,11 +167,95 @@ export default {
 		now = new Date(now)
 		var t_old = old.getTime()
 		var t_now = now.getTime()
-		if (t_old > (t_now + 1000 * 60 * 5)) {//5分钟内不显示时间
-			return now
+		if (t_now > (t_old + 1000 * 60 * 5)) {//5分钟内不显示时间
+			return now //超出五分钟返回时间
 		}else{
 			return ''
 		}
-
 	},
+	debounce(fn, t){//搜索演示作用函数		
+	// * 函数防抖 (只执行最后一次点击)
+	    let delay = t || 500;
+	    let timer;
+	    // console.log(fn)
+	    // console.log(typeof fn)
+	    return function () {
+	        let args = arguments;
+	        if(timer){
+	            clearTimeout(timer);
+	        }
+	        timer = setTimeout(() => {
+	            timer = null;
+	            fn.apply(this, args);
+	        }, delay);
+	    }
+	},
+	detailTime2(t) { // 用户生日日期
+		let old = new Date(t)
+	
+		// 获取old的具体时间
+		let Y = old.getFullYear()
+		let M = old.getMonth() + 1
+		let D = old.getDate()
+	
+		// 处理时间
+		if (M < 10) {
+			M = '0' + M
+		}
+		if (D < 10) {
+			D = '0' + D
+		}
+		
+		return Y + '-' + M + '-' + D 
+	
+	},
+	sort(arr,obj,tip){//排序
+		var s;
+		if(tip == 0){
+			// 降序排序
+			for(let i = 1; i<arr.length; i++){
+				for(let j = i; j>0;j--){
+					if(arr[j][obj] > arr[j-1][obj]){
+						s = arr[j]
+						arr[j] = arr[j-1]
+						arr[j-1] = s
+					}
+				}
+			}
+			return arr
+		}else if(tip == 1){
+			//升序
+			for(let i = 1; i<arr.length; i++){
+				for(let j = i; j>0;j--){
+					if(arr[j][obj] < arr[j-1][obj]){
+						s = arr[j]
+						arr[j] = arr[j-1]
+						arr[j-1] = s
+					}
+				}
+			}
+			return arr
+		}
+	},
+	fileName() { // 文件夹使用日期
+		let old = new Date()
+	
+		// 获取old的具体时间
+		let Y = old.getFullYear()
+		let M = old.getMonth() + 1
+		let D = old.getDate()
+	
+		// 处理时间
+		if (M < 10) {
+			M = '0' + M
+		}
+		if (D < 10) {
+			D = '0' + D
+		}
+		
+		return Y + '' + M +''+ D 
+	
+	},
+	
+	
 }

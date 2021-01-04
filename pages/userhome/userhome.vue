@@ -6,7 +6,7 @@
 			</view>
 
 			<view class="top-bar-right">
-				<view class="more-img">
+				<view class="more-img" v-if="relation == 0 || relation == 1" @tap="userDetail">
 					<image src="../../static/images/userhome/more@3x.png" mode=""></image>
 				</view>
 			</view>
@@ -15,33 +15,36 @@
 		<view class="bg">
 			<view class="bg-cover" :animation="animationData5">
 			</view>
-			<image class="bg-img" src="../../static/images/img/1.png" mode="aspectFill"></image>
+			<image class="bg-img" :src="user.imgurl" mode="aspectFill"></image>
 		</view>
 
 		<view class="main">
 			
-				<view class="user-header" @tap="toUserDetail">
+				<view class="user-header" @tap="userDetail">
 					<view class="sex" :animation="animationData4" :style="{background:sexBg}">
-						<image src="../../static/images/userhome/female.png" mode=""></image>
+						<image :src="seximg" mode=""></image>
 					</view>
-					<image :animation="animationData3" class="user-img" src="../../static/images/img/1.png" mode=""></image>
+					<image :animation="animationData3" class="user-img" :src="user.imgurl" mode=""></image>
 				</view>
 			
 			<view class="user-info">
 				<view class="name">
-					{{user.name}}
+					{{nickname}}
 				</view>
 				<view class="nickname">
-					昵称：{{user.nickname}}
+					昵称：{{user.name}}
 				</view>
 				<view class="bio">
-					{{user.bio}}
+					{{user.explain}}
 				</view>
 			</view>
 
 			<view class="bottom-bar">
-				<view class="bottom-btn btn1" @tap="addFriendAnimate">
+				<view class="bottom-btn btn1" @tap="addFriendBtn" v-if="relation == 2">
 					加为好友
+				</view>
+				<view class="bottom-btn btn1" v-if="relation == 1">
+					发送消息
 				</view>
 			</view>
 
@@ -49,15 +52,15 @@
 				<view class="name">
 					{{user.name}}
 				</view>
-				<textarea class="add-main" :value="myname+'请求加为好友~'" maxlength="120" placeholder="" />
+				<textarea class="add-main" v-model="msg" maxlength="120" placeholder="" />
 				</view>
 			
 			<view class="add-btn bottom-bar" :animation="animationData2">
 				<view class="cancel btn1" @tap="addFriendAnimate">
 					取消
 				</view>
-				<view class="send btn1">
-					发送
+				<view class="send btn1" @tap="addSubmit">
+					发送申请
 				</view>
 			</view>
 			
@@ -70,13 +73,11 @@
 	export default {
 		data() {
 			return {
-				sexBg:'rgba(255,93,91,1)',//性别背景颜色
-				myname:'abcde',
-				user:{
-					name:'hpc',
-					nickname:'白菜汤里的胡萝卜',
-					bio:'很多人的梦想和计划受挫，是有两个小问题导致的：早上起不来床，晚上下不了线'
-				},
+				sexBg:'rgba(39,40,51,1)',//性别背景颜色
+				myname:'',
+				nickname:'',
+				seximg:'../../static/images/userhome/asexual.png',//性别
+				user:{},//用户信息
 				addHeight:0,//add-msg板块高
 				addWidth:0,//页面宽
 				animationData:{},//动画
@@ -85,13 +86,32 @@
 				animationData4:{},
 				animationData5:{},
 				isAdd:false,//动画开关
+				id:'',//查看的用户对象id
+				uid:'',//用户id
+				relation:'',//用户关系：0 表示自己，1 好友，2 陌生人 
+				token:'',
+				msg:'',//添加好友信息
 			};
+		},
+		onReady(){
+			this.getElementStyle()
+		},
+		onLoad(e) {
+			this.id = e.id
+			this.getStorage()
+			this.getUser()
+			this.judgeFriend()
 		},
 		methods:{
 			backOne() { //返回上一页
-				console.log('back!')
+				// console.log('back!')
 				uni.navigateBack({
 					delta: 1
+				});
+			},
+			userDetail(){//跳转到用户详情页
+				uni.navigateTo({
+					url:'../userdetail/userdetail?id='+this.id
 				});
 			},
 			toUserDetail(){//跳转到注册页面
@@ -157,12 +177,232 @@
 				this.animationData4 = animation4.export()
 				this.animationData5 = animation5.export()
 			},
+			getStorage(){//获取缓存数据
+				// 从本地缓存中同步获取指定 key 对应的内容
+				try {
+				    const value = uni.getStorageSync('user');
+				    if (value) {
+				        // console.log(value);
+								
+								this.uid = value.id	
+								this.token = value.token			
+								this.myname = value.name
+								
+				    }else{
+							// 如果没有用户缓存，就跳转到登录页
+							uni.navigateTo({
+								url:'../login/login',
+							});
+						}
+				} catch (e) {
+				    // error
+						uni.showToast({
+						    title: '获取数据失败！',
+								icon:'none',
+						    duration: 2000
+						});
+				}
+			},
+			getUser(){//获取用户信息
+				uni.request({
+					url:this.serverUrl + '/user/detail',
+					data:{
+						id:this.id,
+						token:this.token,
+					},
+					method:'POST',
+					success:(data) => {
+						// console.log(data)
+						let status = data.data.status
+						
+						// 访问后端成功
+						if(status == 200){
+							
+							let res = data.data.result
+							// console.log(res)
+							
+							// 处理头像链接
+							res.imgurl = this.serverUrl + '/user/' + res.imgurl
+							// 处理简介
+							if(res.explain == undefined){
+								res.explain = '这个人很懒，什么都没有留下~'
+							}
+							// 处理昵称
+							if(this.nickname.length == 0){
+								this.nickname = res.name
+							}
+							
+							this.sexJudge(res.sex)
+							
+							this.user = res
+							
+						}else if(status == 500){
+							uni.showToast({
+							    title: '服务器出错了！',
+									icon:'none',
+							    duration: 2000
+							});
+						}else if(status == 300){
+							// token过期了，跳回登录页
+							uni.navigateTo({
+								url:'../login/login?name=' + this.myname,
+							});
+						}
+					}
+				})
+			},
+			sexJudge(e){// 性别判断
+				if(e == 'male'){
+					this.seximg = '../../static/images/userhome/male.png'
+					this.sexBg = 'rgba(87,153,255,1)'
+				}else if(e == 'female'){
+					this.seximg = '../../static/images/userhome/female.png'
+					this.sexBg = 'rgba(255,93,91,1)'
+				}else{// 性别未知
+					this.seximg = '../../static/images/userhome/asexual.png'
+					this.sexBg = 'rgba(39,40,51,1)'
+				}
 			
-			
+			},
+			judgeFriend(){// 判断用户关系
+				if(this.id == this.uid){
+					this.relation = 0
+					// console.log('我自己！')
+					
+				}else{
+					
+					// 如果不是自己,进行后端验证，判断是否为好友
+
+					uni.request({
+						url:this.serverUrl + '/search/isfriend',
+						data:{
+							uid:this.uid,
+							fid:this.id,
+							token:this.token,
+						},
+						method:'POST',
+						success:(data) => {
+							// console.log(data)
+							let status = data.data.status
+							
+							// 访问后端成功
+							if(status == 200){
+								// 好友
+								this.relation = 1
+								this.getNickName()
+								// console.log('你的好友！')
+								
+							}else if(status == 400){
+								// 陌生人
+								this.relation = 2
+								
+							}else if (status == 500){
+								uni.showToast({
+								    title: '服务器出错了！',
+										icon:'none',
+								    duration: 2000
+								});
+							}else if(status == 300){
+								uni.navigateTo({
+									url:'../login/login?name='+this.myname
+								})
+							}
+						}
+					})
+					
+				}
+			},
+			getNickName(){//获取好友昵称
+				uni.request({
+					url:this.serverUrl + '/user/getnickname',
+					data:{
+						uid:this.uid,
+						fid:this.id,
+						token:this.token,
+					},
+					method:'POST',
+					success:(data) => {
+						// console.log(data)
+						let status = data.data.status
+						
+						// 访问后端成功
+						if(status == 200){
+							
+							let res = data.data.result
+							// console.log(res)
+							
+							if(res.nickname != undefined){
+								// 如果昵称存在
+								this.nickname = res.nickname
+							}
+
+						}else if(status == 500){
+							uni.showToast({
+							    title: '服务器出错了！',
+									icon:'none',
+							    duration: 2000
+							});
+						}else if(status == 300){
+								// token过期了，跳回登录页
+								uni.navigateTo({
+									url:'../login/login?name=' + this.myname,
+								});
+								
+							}
+					}
+				})
+			},
+			addSubmit(){//添加好友
+				if(this.msg.length > 0){
+					
+					this.addFriendAnimate()
+					
+					uni.request({
+						url:this.serverUrl + '/friend/applyfriend',
+						data:{
+							uid:this.uid,
+							fid:this.fid,
+							token:this.token,
+							msg:this.msg,
+						},
+						method:'POST',
+						success:(data) => {
+							
+							let status = data.data.status
+							// console.log(status)
+							// 访问后端成功
+							if(status == 200){
+								uni.showToast({
+								    title: '好友请求发送成功！',
+										icon:'none',
+								    duration: 2000
+								});
+								
+							}else if(status == 300){
+								// token过期了，跳回登录页
+								uni.navigateTo({
+									url:'../login/login?name=' + this.myname,
+								});
+								
+							}else if(status == 500){
+								uni.showToast({
+								    title: '服务器出错了！',
+										icon:'none',
+								    duration: 2000
+								});
+							}
+							
+						}
+					})
+				}
+			},
+			addFriendBtn(){//添加好友按钮
+				this.fid = this.id
+				this.msg = this.myname + '	请求添加好友~'
+				this.addFriendAnimate()
+			},
 		},
-		onReady(){
-			this.getElementStyle()
-		}
+		
 	}
 </script>
 
@@ -269,7 +509,7 @@
 					font-family: PingFangSC-Light;
 					font-size: $uni-font-size-base;
 					color: $uni-text-color;
-					text-align: left;
+					text-align: center;
 					letter-spacing: -0.48px;
 					line-height: 48rpx;
 				}
