@@ -1,3 +1,13 @@
-> 类似微信的即刻通讯项目
-+ 持续更新...
-+ 项目使用到uni-app,vuejs,nodejs,mongodb,websocket
+类似微信的即刻通讯项目
+ 
+项目描述：
+- 
+
+项目使用技术：
++ uni-app,vuejs,nodejs,mongodb,websocket
+
+项目职责：
+- 
+
+技术描述：
+- 
